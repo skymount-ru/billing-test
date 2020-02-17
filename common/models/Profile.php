@@ -80,6 +80,17 @@ class Profile extends BaseProfile
     }
 
     /**
+     * Gets profile by UUID.
+     *
+     * @param string $uuid
+     * @return Profile|null
+     */
+    public static function findByUuid(string $uuid)
+    {
+        return Profile::findOne(['uuid' => $uuid]);
+    }
+
+    /**
      * @param string $uuid
      * @param int $status
      * @return bool
@@ -141,11 +152,9 @@ class Profile extends BaseProfile
         ]);
         try {
             if (UUID::fillModelWithValidUUID($payment, UUIDSchema::NS_PAYMENT) && $payment->save()) {
-                $profile->balance = $profile->getPayments()->sum('amount');
-                if ($profile->save()) {
-                    $transaction->commit();
-                    return true;
-                }
+                $profile->refreshBalance();
+                $transaction->commit();
+                return true;
             }
         } catch (\Exception $e) {
             $transaction->rollBack();
@@ -155,4 +164,17 @@ class Profile extends BaseProfile
         throw new \Exception('Не удалось пополнить баланс Клиента. ' . Html::errorSummary($profile), 400);
     }
 
+    /**
+     * Updates balance of the given Profile.
+     *
+     * @param Profile $profile
+     * @throws \Exception
+     */
+    public function refreshBalance()
+    {
+        $this->balance = $this->getPayments()->sum('amount');
+        if (!$this->save()) {
+            throw new \Exception('Unable to update Profile #' . $this->uuid);
+        }
+    }
 }

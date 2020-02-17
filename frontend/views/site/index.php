@@ -5,6 +5,7 @@
 
 use yii\bootstrap\Html;
 use yii\grid\GridView;
+use yii\helpers\Url;
 
 $this->title = 'My Clients';
 $paymentModalId = 'payment-modal';
@@ -22,6 +23,10 @@ $paymentModalId = 'payment-modal';
             'columns' => [
                 [
                     'attribute' => 'uuid',
+                    'format' => 'raw',
+                    'value' => function($model) {
+                        return Html::a($model->uuid, ['payment/index', 'profile_uuid' => $model->uuid]);
+                    },
                 ],
                 [
                     'attribute' => 'phone',
@@ -66,6 +71,7 @@ $paymentModalId = 'payment-modal';
         ]) ?>
         <hr>
         <button class="btn btn-primary" data-toggle="modal" data-target="#<?= $paymentModalId ?>">Пополнить баланс</button>
+        <a href="<?= Url::to(['payment/index']) ?>" class="btn btn-info">Все зачисления</a>
     </div>
 </div>
 

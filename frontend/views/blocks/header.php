@@ -22,8 +22,8 @@ $menuItems = [
     ],
 ];
 if (Yii::$app->user->isGuest) {
-    $menuItems[] = ['label' => 'Регистрация пользователя', 'url' => ['/site/signup']];
-    $menuItems[] = ['label' => 'Вход для пользователя', 'url' => ['/site/login']];
+//    $menuItems[] = ['label' => 'Регистрация пользователя', 'url' => ['/site/signup']];
+//    $menuItems[] = ['label' => 'Вход для пользователя', 'url' => ['/site/login']];
 } else {
     $menuItems[] = '<li>'
         . Html::beginForm(['/site/logout'], 'post')
