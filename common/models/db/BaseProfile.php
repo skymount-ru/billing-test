@@ -42,6 +42,7 @@ class BaseProfile extends \yii\db\ActiveRecord
             [['balance'], 'number'],
             [['uuid'], 'string', 'max' => 36],
             [['phone', 'f_name', 'l_name', 'm_name'], 'string', 'max' => 255],
+            [['phone'], 'unique'],
         ];
     }
 

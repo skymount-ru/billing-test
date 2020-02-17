@@ -21,7 +21,7 @@ class m200217_075635_create_profile_table extends Migration
             'id' => $this->primaryKey(),
             'user_id' => $this->integer(),
             'uuid' => $this->string(36)->notNull(),
-            'phone' => $this->string(),
+            'phone' => $this->string()->unique(),
             'f_name' => $this->string()->notNull(),
             'l_name' => $this->string()->notNull(),
             'm_name' => $this->string(),
