@@ -122,6 +122,7 @@ class ProfileController extends \yii\web\Controller
                 }
             }
         }
-        throw new ServerErrorHttpException();
+        Yii::$app->session->setFlash('error', 'Не удалось выполнить зачисление для указанного пользователя. Пользователь не найден, либо отключен.');
+        return $this->goHome();
     }
 }

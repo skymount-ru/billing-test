@@ -38,7 +38,12 @@ $paymentModalId = 'payment-modal';
                         return $model->getFio();
                     },
                 ],
-                'balance:currency',
+                [
+                    'attribute' => 'balance',
+                    'value' => function($model) {
+                        return $model->balance ? Yii::$app->formatter->asCurrency($model->balance) : '–';
+                    },
+                ],
                 [
                     'attribute' => 'status',
                     'format' => 'raw',
