@@ -6,6 +6,7 @@ namespace frontend\controllers;
 use common\facade\UUID;
 use common\facade\UUIDSchema;
 use common\models\Profile;
+use frontend\models\PaymentForm;
 use Yii;
 use yii\bootstrap\Html;
 use yii\filters\VerbFilter;
@@ -66,7 +67,7 @@ class ProfileController extends \yii\web\Controller
         }
 
         if (UUID::fillModelWithValidUUID($profile, UUIDSchema::NS_PROFILE) && $profile->save()) {
-            Yii::$app->session->setFlash('success', 'Thank you for registration.');
+            Yii::$app->session->setFlash('success', 'Вы зарегистрированы.');
             return $this->goHome();
         }
 
@@ -97,5 +98,30 @@ class ProfileController extends \yii\web\Controller
             }
             throw new ServerErrorHttpException();
         }
+    }
+
+    public function actionUuidList(string $q)
+    {
+        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+        return [
+            'results' => Profile::searchUuidList($q)
+        ];
+    }
+
+    public function actionDeposit()
+    {
+        $payment = new PaymentForm();
+        if ($payment->load(Yii::$app->request->post()) && $payment->validate()) {
+            try {
+                Profile::deposit($payment->id, $payment->amount);
+                Yii::$app->session->setFlash('success', 'Баланс пополнен.');
+                return $this->goHome();
+            } catch (\Exception $e) {
+                if ($e->getCode() == 404) {
+                    throw new NotFoundHttpException($e->getMessage());
+                }
+            }
+        }
+        throw new ServerErrorHttpException();
     }
 }

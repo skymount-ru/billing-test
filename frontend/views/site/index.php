@@ -3,22 +3,20 @@
 /* @var $this yii\web\View */
 /* @var $profilesDP yii\data\ActiveDataProvider */
 
+use yii\bootstrap\Html;
+use yii\grid\GridView;
+
 $this->title = 'My Clients';
+$paymentModalId = 'payment-modal';
 
-use yii\bootstrap4\Html;
-use yii\grid\GridView; ?>
+?>
 <div class="site-index">
-
     <div class="jumbotron">
         <h1>Присоединяйтесь к нам</h1>
-
         <p class="lead">Быстрые и надежные платежи.</p>
-
-        <p><a class="btn btn-lg btn-success" data-toggle="modal" data-target="#client-reg-modal">Пройти регистрацию</a></p>
+        <p><a class="btn btn-success" data-toggle="modal" data-target="#client-reg-modal">Пройти регистрацию</a></p>
     </div>
-
     <div class="body-content">
-
         <?= GridView::widget([
             'dataProvider' => $profilesDP,
             'columns' => [
@@ -42,19 +40,35 @@ use yii\grid\GridView; ?>
                     'value' => function ($model) {
                         switch ($model->status) {
                             case \common\models\Profile::STATUS_ACTIVE:
-                                return Html::a('<i class="fas fa-power-off"></i>', ['profile/status-inactivate', 'uuid' => $model->uuid], ['class' => 'btn btn-success', 'data-method' => 'post']);
+                                $linkClass = 'btn-success';
+                                $link = ['profile/status-inactivate'];
+                                $label = 'Активен';
                                 break;
                             case \common\models\Profile::STATUS_INACTIVE:
-                                return Html::a('<i class="fas fa-power-off"></i>', ['profile/status-activate', 'uuid' => $model->uuid], ['class' => 'btn btn-danger', 'data-method' => 'post']);
+                                $linkClass = 'btn-danger';
+                                $link = ['profile/status-activate'];
+                                $label = 'Неактивен';
                                 break;
                             default:
-                                return Html::a('<i class="fas fa-power-off"></i>', ['profile/status-activate', 'uuid' => $model->uuid], ['class' => 'btn btn-warning', 'data-method' => 'post']);
+                                $linkClass = 'btn-warning';
+                                $link = ['profile/status-activate'];
+                                $label = 'Новый';
                                 break;
                         }
+                        return Html::a(
+                            '<i class="fas fa-power-off"></i> ' . $label,
+                            $link + ['uuid' => $model->uuid],
+                            ['class' => 'btn btn-sm ' . $linkClass, 'data-method' => 'post']
+                        );
                     },
                 ],
             ],
         ]) ?>
-
+        <hr>
+        <button class="btn btn-primary" data-toggle="modal" data-target="#<?= $paymentModalId ?>">Пополнить баланс</button>
     </div>
 </div>
+
+<?= $this->render('//blocks/payment-modal', [
+    'modalId' => $paymentModalId,
+]) ?>

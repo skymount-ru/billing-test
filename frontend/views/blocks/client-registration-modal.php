@@ -1,5 +1,9 @@
 <?php
 
+/**
+ * @var int $modalId
+ */
+
 use common\models\Profile;
 use yii\bootstrap\ActiveForm;
 use yii\bootstrap\Html;
@@ -8,7 +12,7 @@ use yii\bootstrap\Modal;
 $model = new Profile(['scenario' => Profile::SCENARIO_CREATE_AJAX]);
 
 Modal::begin([
-    'id' => 'client-reg-modal',
+    'id' => $modalId,
     'header' => '<h2>Регистрация клиента</h2>',
 ]);
 ?>

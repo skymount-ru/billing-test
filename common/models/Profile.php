@@ -3,7 +3,10 @@
 
 namespace common\models;
 
+use common\facade\UUID;
+use common\facade\UUIDSchema;
 use common\models\db\BaseProfile;
+use Yii;
 use yii\behaviors\BlameableBehavior;
 use yii\behaviors\TimestampBehavior;
 use yii\helpers\Html;
@@ -18,29 +21,6 @@ class Profile extends BaseProfile
      * Special sub-scenario for ajax validation to skip UUID check.
      */
     const SCENARIO_CREATE_AJAX = 'create-ajax';
-
-    /**
-     * @param string $uuid
-     * @param int $status
-     * @return bool
-     * @throws \Exception
-     */
-    public static function setStatus(string $uuid, int $status)
-    {
-        $profile = Profile::findOne(['uuid' => $uuid]);
-        if ($profile) {
-            $profile->status = $status;
-            try {
-                if ($profile->save()) {
-                    return true;
-                }
-            } catch (\Exception $e) {
-                throw new \Exception('Не удалось сохранить Статус для Клиента #' . $uuid, 500);
-            }
-            throw new \Exception('Не удалось задать Статус для Клиента #' . $uuid . ' ' . Html::errorSummary($profile), 400);
-        }
-        throw new \Exception('Не удалось найти Клиента #' . $uuid, 404);
-    }
 
     /**
      * {@inheritdoc}
@@ -88,4 +68,91 @@ class Profile extends BaseProfile
             $this->m_name
         ]);
     }
+
+    /**
+     * Gets query for [[Payments]].
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getPayments()
+    {
+        return $this->hasMany(Payment::class, ['profile_id' => 'id']);
+    }
+
+    /**
+     * @param string $uuid
+     * @param int $status
+     * @return bool
+     * @throws \Exception
+     */
+    public static function setStatus(string $uuid, int $status)
+    {
+        $profile = Profile::findOne(['uuid' => $uuid]);
+        if ($profile) {
+            $profile->status = $status;
+            try {
+                if ($profile->save()) {
+                    return true;
+                }
+            } catch (\Exception $e) {
+                throw new \Exception('Не удалось сохранить Статус для Клиента', 500);
+            }
+            throw new \Exception('Не удалось задать Статус для Клиента. ' . Html::errorSummary($profile), 400);
+        }
+        throw new \Exception('Не удалось найти Клиента', 404);
+    }
+
+    public static function searchUuidList(string $q)
+    {
+        $query = Profile::find()
+            ->where(['status' => Profile::STATUS_ACTIVE])
+            ->andWhere(['or',
+                ['like', 'uuid', $q],
+                ['like', 'phone', $q]
+            ]);
+
+        return $query
+            ->select(['phone', 'l_name', 'id'])
+            ->asArray()
+            ->all();
+    }
+
+    /**
+     * Deposit an amount on profile's account.
+     *
+     * @param string $id
+     * @param int $amount
+     * @return bool
+     * @throws \Exception
+     */
+    public static function deposit(string $id, int $amount)
+    {
+        $profile = Profile::findOne([
+            'id' => $id,
+            'status' => Profile::STATUS_ACTIVE,
+        ]);
+        if (!$profile) {
+            throw new \Exception('Не удалось найти Клиента', 404);
+        }
+        $transaction = Yii::$app->db->beginTransaction();
+        $payment = new Payment([
+            'profile_id' => $profile->id,
+            'amount' => $amount,
+        ]);
+        try {
+            if (UUID::fillModelWithValidUUID($payment, UUIDSchema::NS_PAYMENT) && $payment->save()) {
+                $profile->balance = $profile->getPayments()->sum('amount');
+                if ($profile->save()) {
+                    $transaction->commit();
+                    return true;
+                }
+            }
+        } catch (\Exception $e) {
+            $transaction->rollBack();
+            throw new \Exception('Не удалось сохранить зачисление для Клиента', 500);
+        }
+        $transaction->rollBack();
+        throw new \Exception('Не удалось пополнить баланс Клиента. ' . Html::errorSummary($profile), 400);
+    }
+
 }

@@ -10,7 +10,7 @@ use Yii;
  * @property int $id
  * @property string $uuid
  * @property int $profile_id
- * @property float $balance
+ * @property float $amount
  * @property int|null $created_at
  * @property int|null $updated_at
  * @property int|null $author_id
@@ -32,9 +32,9 @@ class BasePayment extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['uuid', 'profile_id', 'balance'], 'required'],
+            [['uuid', 'profile_id', 'amount'], 'required'],
             [['profile_id', 'created_at', 'updated_at', 'author_id', 'editor_id'], 'integer'],
-            [['balance'], 'number'],
+            [['amount'], 'number'],
             [['uuid'], 'string', 'max' => 36],
         ];
     }
@@ -48,7 +48,7 @@ class BasePayment extends \yii\db\ActiveRecord
             'id' => 'ID',
             'uuid' => 'Uuid',
             'profile_id' => 'Profile ID',
-            'balance' => 'Balance',
+            'amount' => 'Amount',
             'created_at' => 'Created At',
             'updated_at' => 'Updated At',
             'author_id' => 'Author ID',
